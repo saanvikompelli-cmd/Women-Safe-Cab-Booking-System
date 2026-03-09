@@ -1,418 +1,580 @@
-import java.util.*;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Women Safe Cab Booking System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-class Ride{
-    String passenger;
-    String pickup;
-    String drop;
-    int fare;
-    int otp;
-    String status;
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 
-    Ride(String passenger,String pickup,String drop,int fare,int otp){
-        this.passenger=passenger;
-        this.pickup=pickup;
-        this.drop=drop;
-        this.fare=fare;
-        this.otp=otp;
-        this.status="BOOKED";
-    }
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#fbc2eb,#a6c1ee,#d4a5ff);
+background-size:400% 400%;
+animation:gradientMove 12s ease infinite;
 }
 
-class DriverJob{
-    String name;
-    String phone;
-    String vehicle;
-    int exp;
-
-    DriverJob(String name,String phone,String vehicle,int exp){
-        this.name=name;
-        this.phone=phone;
-        this.vehicle=vehicle;
-        this.exp=exp;
-    }
+@keyframes gradientMove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
 }
 
-class Feedback{
-    String name;
-    String rating;
-    String comment;
-
-    Feedback(String name,String rating,String comment){
-        this.name=name;
-        this.rating=rating;
-        this.comment=comment;
-    }
+header{
+background:linear-gradient(to right,#ff758c,#7b2ff7);
+color:white;
+padding:45px;
+text-align:center;
+border-bottom-left-radius:50px;
+border-bottom-right-radius:50px
 }
 
-class Contact{
-    String name;
-    String phone;
-
-    Contact(String name,String phone){
-        this.name=name;
-        this.phone=phone;
-    }
+nav{
+display:none;
+justify-content:center;
+flex-wrap:wrap;
+padding:20px
 }
 
-public class WomenSafeCabSystem {
-
-    static Scanner sc=new Scanner(System.in);
-
-    // Login system
-    static HashMap<String,String> passengers=new HashMap<>();
-    static HashMap<String,String> drivers=new HashMap<>();
-
-    // Ride management
-    static Queue<Ride> rideQueue=new LinkedList<>();
-    static Stack<Ride> rideHistory=new Stack<>();
-
-    // Other storage
-    static ArrayList<DriverJob> jobs=new ArrayList<>();
-    static ArrayList<Feedback> feedbacks=new ArrayList<>();
-    static ArrayList<Contact> contacts=new ArrayList<>();
-
-    static Ride currentRide=null;
-    static Ride passengerRide=null;
-
-    public static void main(String[] args){
-
-        while(true){
-
-            System.out.println("\n=== WOMEN SAFE CAB BOOKING SYSTEM ===");
-            System.out.println("1 Register");
-            System.out.println("2 Login");
-            System.out.println("3 Exit");
-
-            int choice=sc.nextInt();
-
-            switch(choice){
-                case 1: register(); break;
-                case 2: login(); break;
-                case 3: System.exit(0);
-            }
-        }
-    }
-
-    static void register(){
-
-        System.out.println("Register as:");
-        System.out.println("1 Passenger");
-        System.out.println("2 Driver");
-
-        int type=sc.nextInt();
-        sc.nextLine();
-
-        System.out.print("Username: ");
-        String user=sc.nextLine();
-
-        System.out.print("Password: ");
-        String pass=sc.nextLine();
-
-        if(type==1)
-            passengers.put(user,pass);
-        else
-            drivers.put(user,pass);
-
-        System.out.println("Registration Successful");
-    }
-
-    static void login(){
-
-        System.out.println("Login as:");
-        System.out.println("1 Passenger");
-        System.out.println("2 Driver");
-
-        int type=sc.nextInt();
-        sc.nextLine();
-
-        System.out.print("Username: ");
-        String user=sc.nextLine();
-
-        System.out.print("Password: ");
-        String pass=sc.nextLine();
-
-        if(type==1 && passengers.containsKey(user) && passengers.get(user).equals(pass))
-            passengerMenu();
-
-        else if(type==2 && drivers.containsKey(user) && drivers.get(user).equals(pass))
-            driverMenu();
-
-        else
-            System.out.println("Invalid Login");
-    }
-
-    static void passengerMenu(){
-
-        while(true){
-
-            System.out.println("\nPassenger Menu");
-            System.out.println("1 Book Ride");
-            System.out.println("2 View Ride Status");
-            System.out.println("3 Cancel Ride");
-            System.out.println("4 Give Feedback");
-            System.out.println("5 Apply Driving Job");
-            System.out.println("6 Emergency Contacts");
-            System.out.println("7 SOS Alert");
-            System.out.println("8 Logout");
-
-            int ch=sc.nextInt();
-
-            switch(ch){
-                case 1: bookRide(); break;
-                case 2: rideStatus(); break;
-                case 3: cancelRide(); break;
-                case 4: submitFeedback(); break;
-                case 5: applyDriverJob(); break;
-                case 6: addContact(); break;
-                case 7: sendSOS(); break;
-                case 8: return;
-            }
-        }
-    }
-
-    static void driverMenu(){
-
-        while(true){
-
-            System.out.println("\nDriver Panel");
-            System.out.println("Pending Requests: "+rideQueue.size());
-            System.out.println("1 View Ride Requests");
-            System.out.println("2 Accept Ride");
-            System.out.println("3 Reject Ride");
-            System.out.println("4 Verify OTP");
-            System.out.println("5 Complete Ride");
-            System.out.println("6 Ride History");
-            System.out.println("7 View Driver Applications");
-            System.out.println("8 Logout");
-
-            int ch=sc.nextInt();
-
-            switch(ch){
-                case 1: showRideRequests(); break;
-                case 2: acceptRide(); break;
-                case 3: rejectRide(); break;
-                case 4: verifyOTP(); break;
-                case 5: completeRide(); break;
-                case 6: showRideHistory(); break;
-                case 7: viewDriverApplications(); break;
-                case 8: return;
-            }
-        }
-    }
-
-    static int calculateFare(int distance){
-        return 50 + (distance*15);
-    }
-
-    static void bookRide(){
-
-        sc.nextLine();
-
-        System.out.print("Passenger Name: ");
-        String name=sc.nextLine();
-
-        System.out.print("Pickup: ");
-        String pickup=sc.nextLine();
-
-        System.out.print("Drop: ");
-        String drop=sc.nextLine();
-
-        int distance=new Random().nextInt(10)+1;
-        int fare=calculateFare(distance);
-        int otp=1000+new Random().nextInt(9000);
-
-        Ride ride=new Ride(name,pickup,drop,fare,otp);
-
-        rideQueue.add(ride);
-        passengerRide=ride;
-
-        System.out.println("Ride Booked Successfully");
-        System.out.println("Distance: "+distance+" km");
-        System.out.println("Fare: "+fare);
-        System.out.println("OTP: "+otp);
-    }
-
-    static void rideStatus(){
-
-        if(passengerRide==null)
-            System.out.println("No ride booked");
-
-        else{
-            System.out.println("Passenger: "+passengerRide.passenger);
-            System.out.println("Route: "+passengerRide.pickup+" -> "+passengerRide.drop);
-            System.out.println("Status: "+passengerRide.status);
-        }
-    }
-
-    static void cancelRide(){
-
-        if(passengerRide==null){
-            System.out.println("No ride to cancel");
-            return;
-        }
-
-        rideQueue.remove(passengerRide);
-        passengerRide=null;
-
-        System.out.println("Ride Cancelled");
-    }
-
-    static void showRideRequests(){
-
-        if(rideQueue.isEmpty()){
-            System.out.println("No Ride Requests");
-            return;
-        }
-
-        for(Ride r:rideQueue){
-            System.out.println(r.passenger+" | "+r.pickup+" -> "+r.drop+" | Fare:"+r.fare);
-        }
-    }
-
-    static void acceptRide(){
-
-        if(rideQueue.isEmpty()){
-            System.out.println("No rides");
-            return;
-        }
-
-        currentRide=rideQueue.poll();
-        currentRide.status="DRIVER ASSIGNED";
-
-        System.out.println("Ride Accepted for "+currentRide.passenger);
-    }
-
-    static void rejectRide(){
-
-        if(rideQueue.isEmpty()){
-            System.out.println("No ride requests");
-            return;
-        }
-
-        Ride r=rideQueue.poll();
-        System.out.println("Ride Rejected: "+r.passenger);
-    }
-
-    static void verifyOTP(){
-
-        if(currentRide==null){
-            System.out.println("No ride");
-            return;
-        }
-
-        System.out.print("Enter OTP: ");
-        int entered=sc.nextInt();
-
-        if(entered==currentRide.otp){
-            currentRide.status="RIDE STARTED";
-            System.out.println("Ride Started");
-        }else{
-            System.out.println("Wrong OTP");
-        }
-    }
-
-    static void completeRide(){
-
-        if(currentRide==null){
-            System.out.println("No ride to complete");
-            return;
-        }
-
-        currentRide.status="COMPLETED";
-        rideHistory.push(currentRide);
-
-        passengerRide=null;
-        currentRide=null;
-
-        System.out.println("Ride Completed");
-    }
-
-    static void showRideHistory(){
-
-        if(rideHistory.isEmpty()){
-            System.out.println("No history");
-            return;
-        }
-
-        for(Ride r:rideHistory)
-            System.out.println(r.passenger+" "+r.pickup+" -> "+r.drop+" | "+r.status);
-    }
-
-    static void applyDriverJob(){
-
-        sc.nextLine();
-
-        System.out.print("Name: ");
-        String name=sc.nextLine();
-
-        System.out.print("Phone: ");
-        String phone=sc.nextLine();
-
-        System.out.print("Vehicle: ");
-        String vehicle=sc.nextLine();
-
-        System.out.print("Experience: ");
-        int exp=sc.nextInt();
-
-        jobs.add(new DriverJob(name,phone,vehicle,exp));
-
-        System.out.println("Application Submitted");
-    }
-
-    static void viewDriverApplications(){
-
-        if(jobs.isEmpty()){
-            System.out.println("No applications");
-            return;
-        }
-
-        for(DriverJob j:jobs)
-            System.out.println(j.name+" | "+j.vehicle+" | "+j.exp+" yrs");
-    }
-
-    static void submitFeedback(){
-
-        sc.nextLine();
-
-        System.out.print("Name: ");
-        String name=sc.nextLine();
-
-        System.out.print("Rating: ");
-        String rating=sc.nextLine();
-
-        System.out.print("Comment: ");
-        String comment=sc.nextLine();
-
-        feedbacks.add(new Feedback(name,rating,comment));
-
-        System.out.println("Feedback Submitted");
-    }
-
-    static void addContact(){
-
-        sc.nextLine();
-
-        System.out.print("Contact Name: ");
-        String name=sc.nextLine();
-
-        System.out.print("Phone: ");
-        String phone=sc.nextLine();
-
-        contacts.add(new Contact(name,phone));
-
-        System.out.println("Contact Added");
-    }
-
-    static void sendSOS(){
-
-        if(contacts.isEmpty()){
-            System.out.println("No emergency contacts");
-            return;
-        }
-
-        System.out.println("SOS ALERT SENT");
-
-        for(Contact c:contacts)
-            System.out.println("Alert sent to "+c.name+" : "+c.phone);
-    }
+nav button{
+background:linear-gradient(to right,#ff6ec4,#7873f5);
+color:white;
+padding:10px 20px;
+margin:6px;
+border:none;
+border-radius:25px;
+cursor:pointer
 }
+
+section{
+display:none;
+padding:60px 10%
+}
+
+.card{
+background:rgba(255,255,255,0.92);
+padding:35px;
+margin:30px 0;
+border-radius:25px;
+box-shadow:0 10px 30px rgba(0,0,0,0.15)
+}
+
+h2{color:#7b2ff7;margin-bottom:20px}
+
+input,select,textarea{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:12px;
+border:1px solid #ddd
+}
+
+.btn{
+background:linear-gradient(to right,#ff6ec4,#7873f5);
+color:white;
+border:none;
+padding:12px 25px;
+border-radius:30px;
+cursor:pointer
+}
+
+.sos{background:red}
+
+footer{
+background:linear-gradient(to right,#7b2ff7,#ff758c);
+color:white;
+text-align:center;
+padding:25px;
+border-top-left-radius:50px;
+border-top-right-radius:50px
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Women Safe Cab Booking</h1>
+<p>Safe • Verified • Secure Transportation</p>
+</header>
+
+<nav id="mainNav">
+<button onclick="showSection('book')">Book Ride</button>
+<button onclick="showSection('rideStatus')">Ride Status</button>
+<button onclick="showSection('driverPanel')">Driver Panel</button>
+<button onclick="showSection('jobs')">Driving Jobs</button>
+<button onclick="showSection('feedback')">Feedback</button>
+<button onclick="showSection('emergency')">Emergency</button>
+<button onclick="logout()">Logout</button>
+</nav>
+
+<!-- LOGIN -->
+
+<section id="login">
+<div class="card">
+
+<h2>Login</h2>
+
+<select id="loginType">
+<option value="passenger">Passenger</option>
+<option value="driver">Driver</option>
+</select>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button class="btn" onclick="login()">Login</button>
+
+<br><br>
+
+<p>New User?</p>
+<button class="btn" onclick="showSection('register')">Register</button>
+
+</div>
+</section>
+
+<!-- REGISTER -->
+
+<section id="register">
+<div class="card">
+
+<h2>Register</h2>
+
+<select id="regType">
+<option value="passenger">Passenger</option>
+<option value="driver">Driver</option>
+</select>
+
+<input id="regUser" placeholder="Username">
+<input id="regPass" type="password" placeholder="Password">
+
+<button class="btn" onclick="register()">Create Account</button>
+
+<br><br>
+
+<button class="btn" onclick="showSection('login')">Back to Login</button>
+
+</div>
+</section>
+
+<!-- BOOK RIDE -->
+
+<section id="book">
+<div class="card">
+
+<h2>Book Ride</h2>
+
+<input id="passengerName" placeholder="Passenger Name">
+<input id="pickup" placeholder="Pickup Location">
+<input id="drop" placeholder="Drop Location">
+
+<button class="btn" onclick="bookRide()">Book Ride</button>
+
+</div>
+</section>
+
+<!-- RIDE STATUS -->
+
+<section id="rideStatus">
+<div class="card">
+
+<h2>Ride Status</h2>
+
+<div id="rideInfo">No ride booked yet.</div>
+
+<br>
+
+<button class="btn sos" onclick="sendSOS()">ðŸš¨ SOS Emergency</button>
+<button class="btn" onclick="fakeCall()">ðŸ“ž Fake Call</button>
+<button class="btn" onclick="routeCheck()">Check Route Safety</button>
+
+</div>
+
+<div class="card">
+
+<h3>Driver Panel</h3>
+
+<button class="btn" onclick="driverAcceptRide()">Driver Accept Ride</button>
+
+</div>
+
+</section>
+
+<!-- SAFETY FEATURES -->
+
+<section id="features">
+<div class="card">
+</div>
+</section>
+
+<!-- DRIVER PANEL -->
+
+<section id="driverPanel">
+
+<div class="card">
+
+<h2>Driver Dashboard</h2>
+
+<p>Pending Requests: <span id="pendingCount">0</span></p>
+
+<button class="btn" onclick="loadRideRequests()">Load Ride Requests</button>
+
+<div id="driverRides"></div>
+
+</div>
+
+<div class="card">
+
+<h3>OTP Verification</h3>
+
+<input id="driverOTP" placeholder="Enter passenger OTP">
+
+<button class="btn" onclick="verifyOTP()">Start Ride</button>
+<button class="btn" onclick="completeRide()">Complete Ride</button>
+
+</div>
+
+<div class="card">
+
+<h3>Ride History</h3>
+
+<div id="rideHistoryView"></div>
+
+</div>
+
+</section>
+
+<!-- DRIVING JOBS -->
+
+<section id="jobs">
+<div class="card">
+
+<h2>Apply for Driving Job</h2>
+
+<input id="jobName" placeholder="Full Name">
+<input id="jobPhone" placeholder="Phone Number">
+<input id="vehicleType" placeholder="Vehicle Type">
+<input id="experience" placeholder="Driving Experience (years)">
+
+<button class="btn" onclick="applyDriver()">Submit Application</button>
+
+</div>
+
+<div class="card">
+
+<h3>Applications</h3>
+
+<div id="jobList"></div>
+
+</div>
+</section>
+
+<!-- FEEDBACK -->
+
+<section id="feedback">
+
+<div class="card">
+
+<h2>Passenger Feedback</h2>
+
+<input id="fbName" placeholder="Your Name">
+
+<select id="rating">
+<option>5 ? Excellent</option>
+<option>4 ? Good</option>
+<option>3 ? Average</option>
+<option>2 ? Poor</option>
+<option>1 ? Bad</option>
+</select>
+
+<textarea id="comment" placeholder="Write feedback"></textarea>
+
+<button class="btn" onclick="submitFeedback()">Submit Feedback</button>
+
+</div>
+
+<div class="card">
+
+<h3>Feedback List</h3>
+
+<div id="feedbackList"></div>
+
+</div>
+
+</section>
+
+<!-- EMERGENCY -->
+
+<section id="emergency">
+<div class="card">
+
+<h2>Emergency Contacts</h2>
+
+<input id="contactName" placeholder="Name">
+<input id="contactPhone" placeholder="Phone">
+
+<button class="btn" onclick="addContact()">Add Contact</button>
+
+<ul id="contactList"></ul>
+
+</div>
+</section>
+
+<footer>
+© 2026 Women Safe Cab Booking
+</footer>
+
+<script>
+
+let users=JSON.parse(localStorage.getItem("users"))||[]
+let currentRide=null
+let rideQueue=JSON.parse(localStorage.getItem("rides"))||[]
+let rideHistory=JSON.parse(localStorage.getItem("history"))||[]
+let contacts=[]
+let jobs=JSON.parse(localStorage.getItem("jobs"))||[]
+let feedbacks=JSON.parse(localStorage.getItem("feedbacks"))||[]
+
+function showSection(id){
+document.querySelectorAll("section").forEach(s=>s.style.display="none")
+document.getElementById(id).style.display="block"
+}
+
+function register(){
+
+let type=document.getElementById("regType").value
+let user=document.getElementById("regUser").value
+let pass=document.getElementById("regPass").value
+
+users.push({type,username:user,password:pass})
+localStorage.setItem("users",JSON.stringify(users))
+
+alert("Registration Successful")
+
+showSection("login")
+
+}
+
+function login(){
+
+let type=document.getElementById("loginType").value
+let user=document.getElementById("username").value
+let pass=document.getElementById("password").value
+
+let found=users.find(u=>u.username==user && u.password==pass && u.type==type)
+
+if(!found){
+alert("Invalid Login")
+return
+}
+
+document.getElementById("login").style.display="none"
+document.getElementById("mainNav").style.display="flex"
+
+if(type=="driver"){
+showSection("driverPanel")
+}else{
+showSection("book")
+}
+
+}
+
+function bookRide(){
+
+let passenger=document.getElementById("passengerName").value
+let pickup=document.getElementById("pickup").value
+let drop=document.getElementById("drop").value
+
+let distance=Math.floor(Math.random()*10)+1
+let fare=distance*20
+let otp=Math.floor(1000+Math.random()*9000)
+
+let ride={passenger,pickup,drop,distance,fare,otp,time:new Date().toLocaleTimeString()}
+
+rideQueue.push(ride)
+localStorage.setItem("rides",JSON.stringify(rideQueue))
+
+document.getElementById("rideInfo").innerHTML=
+`Passenger:${passenger}<br>Pickup:${pickup}<br>Drop:${drop}<br>Fare:?${fare}<br>OTP:${otp}`
+
+updatePending()
+
+}
+
+function loadRideRequests(){
+
+let container=document.getElementById("driverRides")
+container.innerHTML=""
+
+rideQueue.forEach((r,i)=>{
+
+container.innerHTML+=`
+<div class="card">
+Passenger:${r.passenger}<br>
+Pickup:${r.pickup}<br>
+Drop:${r.drop}<br>
+Distance:${r.distance}km<br>
+Fare:?${r.fare}<br>
+Time:${r.time}<br>
+
+<button onclick="acceptRide(${i})">Accept</button>
+<button onclick="rejectRide(${i})">Reject</button>
+</div>`
+
+})
+
+updatePending()
+
+}
+
+function acceptRide(i){
+currentRide=rideQueue[i]
+rideQueue.splice(i,1)
+localStorage.setItem("rides",JSON.stringify(rideQueue))
+alert("Ride Accepted")
+loadRideRequests()
+}
+
+function rejectRide(i){
+rideQueue.splice(i,1)
+localStorage.setItem("rides",JSON.stringify(rideQueue))
+loadRideRequests()
+}
+
+function verifyOTP(){
+
+let entered=document.getElementById("driverOTP").value
+
+if(entered==currentRide.otp){
+alert("Ride Started")
+}else{
+alert("Wrong OTP")
+}
+
+}
+
+function completeRide(){
+rideHistory.push(currentRide)
+localStorage.setItem("history",JSON.stringify(rideHistory))
+alert("Ride Completed")
+renderRideHistory()
+}
+
+function renderRideHistory(){
+
+let c=document.getElementById("rideHistoryView")
+c.innerHTML=""
+
+rideHistory.forEach(r=>{
+c.innerHTML+=`<div>${r.passenger} ${r.pickup} ? ${r.drop}</div>`
+})
+
+}
+
+function updatePending(){
+document.getElementById("pendingCount").innerText=rideQueue.length
+}
+
+function sendSOS(){
+navigator.geolocation.getCurrentPosition(pos=>{
+alert("SOS SENT: https://maps.google.com/?q="+pos.coords.latitude+","+pos.coords.longitude)
+})
+}
+function fakeCall(){
+setTimeout(()=>{
+alert("Incoming Call\nMom is calling...")
+},2000)
+}
+
+
+function addContact(){
+
+let name=document.getElementById("contactName").value
+let phone=document.getElementById("contactPhone").value
+
+contacts.push({name,phone})
+
+renderContacts()
+
+}
+
+function renderContacts(){
+
+let list=document.getElementById("contactList")
+list.innerHTML=""
+
+contacts.forEach(c=>{
+list.innerHTML+=`<li>${c.name} - ${c.phone}</li>`
+})
+
+}
+
+function applyDriver(){
+
+let name=document.getElementById("jobName").value
+let phone=document.getElementById("jobPhone").value
+let vehicle=document.getElementById("vehicleType").value
+let exp=document.getElementById("experience").value
+
+jobs.push({name,phone,vehicle,exp})
+
+localStorage.setItem("jobs",JSON.stringify(jobs))
+
+renderJobs()
+
+}
+
+function renderJobs(){
+
+let j=document.getElementById("jobList")
+j.innerHTML=""
+
+jobs.forEach(d=>{
+j.innerHTML+=`<div>${d.name} | ${d.vehicle} | ${d.exp} yrs</div>`
+})
+
+}
+
+function submitFeedback(){
+
+let name=document.getElementById("fbName").value
+let rating=document.getElementById("rating").value
+let comment=document.getElementById("comment").value
+
+feedbacks.push({name,rating,comment})
+
+localStorage.setItem("feedbacks",JSON.stringify(feedbacks))
+
+renderFeedback()
+
+}
+
+function renderFeedback(){
+
+let f=document.getElementById("feedbackList")
+f.innerHTML=""
+
+feedbacks.forEach(d=>{
+f.innerHTML+=`<div>${d.name} - ${d.rating}<br>${d.comment}</div><br>`
+})
+
+}
+
+function logout(){
+location.reload()
+}
+
+renderJobs()
+renderFeedback()
+renderRideHistory()
+
+showSection("login")
+
+</script>
+
+</body>
+</html>
